@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="main.css">
+    <link rel="icon" href="favicon.ico">
+    <title>Color Blaster Pro</title>
+</head>
+
+<body>
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <h1>COLOR BLASTER PRO</h1>
+        <div class="loader"></div>
+        <p>Loading game assets...</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div id="loading-percentage">0%</div>
+    </div>
+
+    <!-- GAME CONTAINER -->
+    <div id="game-container">
+        <div id="hud">
+            <div class="hud-item" id="score-display">Score: 0</div>
+            <div class="hud-item" id="level-display">Level: 1</div>
+            <div id="current-target-display">Target: 300</div>
+            <div class="hud-item" id="lives-display">
+                <div class="life"></div>
+                <div class="life"></div>
+                <div class="life"></div>
+            </div>
+        </div>
+
+        <button id="pause-btn">II</button>
+      <button id="music-toggle">🎵</button>
+
+        <div id="combo-display"></div>
+        <div id="ball-container"></div>
+        <div id="bullet-container"></div>
+        <div id="enemy-container"></div>
+
+        <div id="gun">
+            <div id="gun-color"></div>
+        </div>
+
+        <div id="start-screen">
+            <h1 style="color: #04222b;">COLOR BLASTER PRO</h1>
+            <p>Match colors. Beat levels. Have fun!</p>
+            <p id="level-target"></p>
+            <button id="start-btn">Play</button>
+        </div>
+
+        <div id="level-complete">
+            <div class="close-btn" id="menu-btn-level">×</div>
+            <h1>LEVEL COMPLETE!</h1>
+            <p>Score: <span id="level-score">0</span></p>
+            <p>Next Level: <span id="next-level">2</span></p>
+            <p id="next-level-target">Score 600 points to complete Level 2!</p>
+            <div class="button-group">
+                <button id="next-level-btn">PLAY NEXT LEVEL</button>
+                <button id="restart-level-btn">PLAY AGAIN</button>
+            </div>
+        </div>
+
+        <div id="game-over">
+            <div class="close-btn" id="menu-btn">×</div>
+            <h1>GAME OVER</h1>
+            <p>Score: <span id="final-score">0</span></p>
+            <p id="level-reached">Level Reached: <span id="reached-level">1</span></p>
+            <div class="button-group">
+                <button id="restart-btn">PLAY AGAIN</button>
+            </div>
+        </div>
+
+        <div id="level-instructions">
+            <h2>LEVEL <span id="instruction-level-num">1</span></h2>
+            <p id="instruction-text"></p>
+            <button id="continue-btn">CONTINUE</button>
+        </div>
+
+        <div id="pause-screen">
+            <h1>GAME PAUSED</h1>
+            <div class="button-group">
+                <button id="resume-btn">RESUME</button>
+                <button id="quit-to-levels-btn">QUIT</button>
+            </div>
+        </div>
+
+        <div id="levels-screen">
+            <div id="levels-header">
+                <div class="header-buttons">
+                    <button id="back-to-menu" class="icon-btn">🏠 Home</button>
+                    <h1>SELECT LEVEL</h1>
+                    <button id="reset-progress-btn" class="icon-btn">↺ Reset</button>
+                </div>
+            </div>
+            <div id="levels-container"></div>
+        </div>
+    </div>
+
+    <div id="reset-confirm-modal" class="modal-screen">
+        <div class="modal-content">
+            <h2>Reset Progress</h2>
+            <p>Are you sure you want to reset all your game progress?</p>
+            <div class="modal-buttons">
+                <button id="confirm-reset-btn">YES, RESET</button>
+                <button id="cancel-reset-btn">NO, KEEP PROGRESS</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="bg-music" src="sounds/bg-music.mp3" loop></audio>
+    <audio id="fire-sound" src="sounds/fire-bullet.wav"></audio>
+    <audio id="pop-sound" src="sounds/ball-pop.flac"></audio>
+    <audio id="loose-sound" src="sounds/loose.mp3"></audio>
+    <audio id="click-sound" src="sounds/click.mp3"></audio>
+    <audio id="explosion-sound" src="sounds/enemy-spawn.mp3"></audio>
+    <audio id="enemy-spawn-sound" src="sounds/enemy-spawn.mp3"></audio>
+    <audio id="enemy-shoot-sound" src=""></audio>
+    <audio id="bomb-drop-sound" src=""></audio>
+    <audio id="enemy-death-sound" src="sounds/enemy-death.mp3"></audio>
+
+    <script src="main.js"></script>
+
+    <script>
+        function startGameAfterLoading() {
+            console.log('Loading complete, starting game...');
+
+            // ENFORCE 20 SECOND MINIMUM LOADING TIME
+            const minimumLoadingTime = 20000; // 20 seconds
+            const timeElapsed = Date.now() - window.loadStartTime;
+            const timeRemaining = Math.max(0, minimumLoadingTime - timeElapsed);
+
+            console.log(`Time elapsed: ${timeElapsed}ms, Waiting: ${timeRemaining}ms more`);
+
+            setTimeout(function () {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('game-container').style.display = 'block';
+
+                // START BACKGROUND MUSIC AUTOMATICALLY AFTER LOADING
+                startBackgroundMusic();
+
+                // Initialize your game
+                if (typeof init === 'function') {
+                    init();
+                }
+            }, timeRemaining);
+        }
+
+        // ADD THIS NEW FUNCTION TO START BACKGROUND MUSIC
+        function startBackgroundMusic() {
+            const bgMusic = document.getElementById('bg-music');
+            bgMusic.loop = true;
+            bgMusic.volume = 0.3;
+
+            // Try to play the music automatically
+            const playPromise = bgMusic.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('Background music started automatically');
+                }).catch(error => {
+                    console.log('Auto-play blocked, music will start on user interaction');
+                    // Add click event to start music on first user interaction
+                    document.addEventListener('click', function startMusicOnClick() {
+                        bgMusic.play().then(() => {
+                            console.log('Background music started after user click');
+                        }).catch(e => {
+                            console.log('Failed to start music:', e);
+                        });
+                        // Remove the event listener after first click
+                        document.removeEventListener('click', startMusicOnClick);
+                    }, { once: true });
+                });
+            }
+        }
+
+        // Wait for page to load
+        window.addEventListener('load', function () {
+            // SET START TIME FOR 20 SECOND MINIMUM LOADING DURATION
+            window.loadStartTime = Date.now();
+
+            console.log('Page loaded, starting 20-second loading sequence...');
+
+            // List of ALL game assets to preload
+            const gameAssets = [
+                // Images
+                'images/spaceship.png',
+                'images/ball-red.png',
+                'images/ball-yellow.png',
+                'images/ball-green.png',
+                'images/ball-blue.png',
+                'images/ball-purple.png',
+                'images/star.png',
+                'images/bullet.png',
+                'images/enemy.png',
+                'images/boss.png',
+                'images/bomb-enemy.png',
+                'images/bomb.png',
+                'images/life.png',
+                'images/start-screen-bg.png',
+                'images/win-screen-bg.png',
+                'images/level-bg.jpg',
+
+                // Backgrounds
+                'bg/bg-0.jpg',
+                'bg/bg-1.png',
+                'bg/bg-2.png',
+                'bg/bg-3.png',
+                'bg/bg-4.png',
+                'bg/bg-5.png',
+                'bg/bg-07.jpg',
+                'bg/bg-8.png',
+                'bg/bg-9.png',
+                'bg/bg-10.png',
+
+                // Audio files
+                'sounds/bg-music.mp3',
+                'sounds/fire-bullet.wav',
+                'sounds/ball-pop.flac',
+                'sounds/loose.mp3',
+                'sounds/click.mp3',
+                'sounds/enemy-spawn.mp3',
+                'sounds/enemy-death.mp3'
+            ];
+
+            let assetsLoaded = 0;
+            const totalAssets = gameAssets.length;
+            const progressFill = document.getElementById('progress-fill');
+            const loadingPercentage = document.getElementById('loading-percentage');
+
+            // PROGRESS - MAKE IT TAKE 20 SECONDS
+            function updateProgress() {
+                assetsLoaded++;
+
+                // PROGRESS - takes full 20 seconds to reach 100%
+                const totalLoadingTime = 20000; // 20 seconds in milliseconds
+                const timeElapsed = Date.now() - window.loadStartTime;
+                const percentage = Math.min(Math.round((timeElapsed / totalLoadingTime) * 100), 99);
+
+                progressFill.style.width = `${percentage}%`;
+                loadingPercentage.textContent = `${percentage}%`;
+
+                console.log(`Loaded ${assetsLoaded}/${totalAssets} assets - ${percentage}% (Time: ${Math.round(timeElapsed / 1000)}s)`);
+
+                // When ALL assets are loaded, but still wait for minimum time
+                if (assetsLoaded === totalAssets) {
+                    console.log('All assets loaded, waiting for 20-second minimum...');
+                    // The startGameAfterLoading function will handle the remaining time
+                }
+            }
+
+            // PRELOAD WITH ARTIFICIAL DELAYS
+            gameAssets.forEach((asset, index) => {
+                // Staggered loading - each asset loads with 0.5-1 second delays
+                const delay = index * 500 + Math.random() * 500; // 0.5-1 seconds between assets
+
+                setTimeout(() => {
+                    if (asset.match(/\.(png|jpg|jpeg|gif)$/i)) {
+                        // It's an image
+                        const img = new Image();
+                        img.onload = updateProgress;
+                        img.onerror = function () {
+                            console.warn(`Failed to load image: ${asset}`);
+                            updateProgress();
+                        };
+                        img.src = asset;
+                    } else if (asset.match(/\.(mp3|wav|flac)$/i)) {
+                        // It's an audio file
+                        const audio = new Audio();
+                        audio.addEventListener('canplaythrough', updateProgress);
+                        audio.addEventListener('error', function () {
+                            console.warn(`Failed to load audio: ${asset}`);
+                            updateProgress();
+                        });
+                        audio.src = asset;
+                        // Preload audio
+                        audio.load();
+                    } else {
+                        // Unknown file type, count as loaded
+                        updateProgress();
+                    }
+                }, delay);
+            });
+
+            // Force completion after exactly 20 seconds
+            setTimeout(function () {
+                console.log('20-second loading period complete, starting game...');
+                // Ensure progress bar shows 100%
+                progressFill.style.width = '100%';
+                loadingPercentage.textContent = '100%';
+
+                // Start the game
+                startGameAfterLoading();
+            }, 20000); // Exactly 20 seconds
+
+            // Update progress bar based on time (not asset loading)
+            const progressInterval = setInterval(function () {
+                if (document.getElementById('loading-screen').style.display === 'none') {
+                    clearInterval(progressInterval);
+                    return;
+                }
+
+                const timeElapsed = Date.now() - window.loadStartTime;
+                const percentage = Math.min(Math.round((timeElapsed / 20000) * 100), 99);
+
+                // Only update if not at 100% yet
+                if (percentage < 100) {
+                    progressFill.style.width = `${percentage}%`;
+                    loadingPercentage.textContent = `${percentage}%`;
+                }
+            }, 1000); // Update every second
+        });
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function (registration) {
+                        console.log('SW registered');
+                    })
+                    .catch(function (err) {
+                        console.log('SW registration failed:', err);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

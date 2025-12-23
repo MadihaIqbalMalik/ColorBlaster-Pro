@@ -1,0 +1,1248 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    background: #121212;
+    user-select: none;
+}
+
+/* ============================================
+   LOADING SCREEN STYLES - RESPONSIVE
+   ============================================ */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url(images/win-screen-bg.png);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+#loading-screen h1 {
+    font-size: clamp(24px, 10vw, 50px);
+    margin-bottom: clamp(10px, 3vw, 20px);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    line-height: 1.2;
+}
+
+#loading-screen p {
+    font-size: clamp(16px, 4vw, 20px);
+    margin-bottom: clamp(15px, 4vw, 30px);
+}
+
+.loader {
+    width: clamp(40px, 15vw, 80px);
+    height: clamp(40px, 15vw, 80px);
+    border: clamp(3px, 1vw, 5px) solid rgba(255, 255, 255, 0.3);
+    border-top: clamp(3px, 1vw, 5px) solid #4cc9f0;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: clamp(10px, 3vw, 20px);
+}
+
+.progress-bar {
+    width: 90%;
+    max-width: min(400px, 90vw);
+    height: clamp(12px, 3vw, 20px);
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: clamp(6px, 1.5vw, 10px);
+    overflow: hidden;
+    margin-bottom: clamp(10px, 3vw, 20px);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4cc9f0, #4361ee);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: clamp(6px, 1.5vw, 10px);
+}
+
+#loading-percentage {
+    font-size: clamp(16px, 4vw, 20px);
+    font-weight: bold;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Hide game container initially */
+#game-container {
+    display: none;
+}
+
+/* ============================================
+   GAME CONTAINER
+   ============================================ */
+#game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-image: url('bg/bg-0.jpg');
+    background-size: cover;
+    background-position: center;
+    transition: background-image 1s ease-in-out;
+}
+
+/* ============================================
+   GUN STYLES
+   ============================================ */
+#gun {
+    position: absolute;
+    bottom: 35px;
+    left: 50%;
+    background-color: transparent !important;
+    transform: translateX(-50%);
+    width: 24vmin;
+    height: 34vmin;
+    background-image: url('images/spaceship.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 25;
+    touch-action: none;
+}
+
+#gun-color {
+    position: absolute;
+    top: 9.2vmin;
+    left: 51%;
+    transform: translateX(-50%);
+    width: 7vmin;
+    height: 15vmin;
+    border-radius: 3.5vmin;
+    transition: background 0.8s ease-in-out;
+    box-shadow: 0 0 0.5vmin rgba(0, 0, 0, 0.3);
+    border: 0.3vmin solid rgb(49, 48, 48);
+    z-index: 26;
+}
+
+/* ============================================
+   CONTAINERS
+   ============================================ */
+#bullet-container,
+#ball-container,
+#enemy-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#bullet-container {
+    z-index: 15;
+}
+
+#ball-container {
+    z-index: 10;
+}
+
+#enemy-container {
+    z-index: 5;
+}
+
+/* ============================================
+   GAME ELEMENTS
+   ============================================ */
+.bullet {
+    position: absolute;
+    width: 2.5vmin;
+    height: 4vmin;
+    border-radius: 0.5vmin;
+    z-index: 15;
+    background-image: url('images/bullet.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.ball {
+    position: absolute;
+    width: 7vmin;
+    height: 7vmin;
+    border-radius: 50%;
+    z-index: 10;
+    box-shadow: 0 0.5vmin 1vmin rgba(0, 0, 0, 0.4);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.1s;
+}
+
+.ball.bounce {
+    animation: bounce 0.3s ease-out;
+}
+
+.ball.star {
+    animation: pulse 1.5s infinite;
+    box-shadow: 0 0 3vmin #FFEB3B;
+}
+
+.enemy {
+    position: absolute;
+    width: 20vmin;
+    height: 20vmin;
+    background-image: url('images/enemy.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 5;
+    transition: transform 0.2s;
+}
+
+.enemy.shooter {
+    background-image: url('images/boss.png');
+}
+
+.enemy.bomber {
+    background-image: url('images/bomb-enemy.png');
+}
+
+.enemy-bullet {
+    position: absolute;
+    width: 7vmin;
+    height: 7vmin;
+    border-radius: 50%;
+    background-color: #ff0000;
+    z-index: 14;
+    box-shadow: 0 0 1vmin rgba(255, 0, 0, 0.7);
+}
+
+.bomb {
+    position: absolute;
+    width: 8vmin;
+    height: 8vmin;
+    background-image: url('images/bomb.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 14;
+    animation: bomb-spin 2s linear infinite;
+}
+
+/* ============================================
+   HUD DISPLAY
+   ============================================ */
+#hud {
+    position: absolute;
+    top: 2vmin;
+    left: 0;
+    width: 100%;
+    padding: 2vmin;
+    display: flex;
+    justify-content: space-between;
+    z-index: 20;
+    pointer-events: none;
+    gap: 2vmin;
+}
+
+.hud-item {
+    color: white;
+    font-size: 3.5vmin;
+    text-shadow: 0.1vmin 0.1vmin 0.3vmin rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    /* flex: 1; */
+    justify-content: center;
+}
+
+#level-display {
+    text-align: center;
+}
+
+#lives-display {
+    text-align: right;
+    justify-content: flex-end;
+}
+
+.life {
+    width: 7vmin;
+    height: 4vmin;
+    background-image: url('images/life.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#combo-display {
+    position: absolute;
+    top: 10vmin;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #FFEB3B;
+    font-size: 5vmin;
+    opacity: 0;
+    z-index: 20;
+    text-shadow: 0 0 1.5vmin rgba(255, 235, 59, 0.7);
+}
+
+#current-target-display {
+    position: absolute;
+    bottom: -19px;
+    left: 0px;
+    color: white;
+    font-size: 3.5vmin;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+    padding: 1vmin 2vmin;
+    border-radius: 2vmin;
+    pointer-events: none;
+}
+
+/* ============================================
+   SCREENS (Start, Game Over, Level Complete, etc.)
+   ============================================ */
+#start-screen,
+#game-over,
+#level-complete,
+#levels-screen,
+#pause-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 100;
+    text-align: center;
+}
+
+#start-screen {
+    background-color: rgba(0, 0, 0, 0.95);
+    background-image: url(images/start-screen-bg.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#game-over,
+#level-complete,
+#levels-screen,
+#pause-screen {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.95);
+    background-image: url('images/win-screen-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#level-instructions {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 200;
+    display: none;
+}
+
+#level-instructions h2 {
+    color: #4cc9f0;
+    font-size: 5vmin;
+    margin-bottom: 3vmin;
+    text-shadow: 0 0 1vmin #4cc9f0;
+}
+
+/* ============================================
+   TEXT & BUTTONS
+   ============================================ */
+h1 {
+    font-size: 10vmin;
+    margin-bottom: 3vmin;
+    color: #f72585;
+    text-shadow: 0 0 2vmin #f3f8f9;
+}
+
+p {
+    color: #dbf7ff;
+    font-size: 4.5vmin;
+    margin-bottom: 2vmin;
+    max-width: 80%;
+}
+
+button {
+    background: #f72585;
+    color: white;
+    border: none;
+    padding: 2vmin 5vmin;
+    font-size: 3.5vmin;
+    border-radius: 5vmin;
+    cursor: pointer;
+    box-shadow: 0 0.5vmin 1.5vmin rgba(247, 37, 133, 0.4);
+    transition: all 0.2s;
+    margin: 1vmin;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    gap: 15px;
+}
+
+#start-btn {
+    padding: 0.8rem 2.5rem;
+    font-size: 1.2rem;
+    background: #4facfe;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    animation: start-btn-pulse 1.5s infinite;
+}
+
+#level-target {
+    font-size: 4vmin;
+    color: #FFEB3B;
+    margin-bottom: 3vmin;
+}
+
+/* ============================================
+   SPECIAL ELEMENTS
+   ============================================ */
+.particle {
+    position: absolute;
+    width: 2vmin;
+    height: 2vmin;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.shield {
+    position: absolute;
+    width: 25vmin;
+    height: 25vmin;
+    border-radius: 50%;
+    border: 3px dashed rgba(76, 201, 240, 0.7);
+    z-index: 24;
+    pointer-events: none;
+    animation: shield-pulse 2s infinite;
+}
+
+.enemy-spawn-notification {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 4vmin;
+    text-shadow: 0 0 1vmin red;
+    opacity: 0;
+    z-index: 30;
+    animation: spawn-notification 2s;
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    font-size: 40px;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.2s;
+    z-index: 101;
+}
+
+.close-btn:hover {
+    transform: scale(1.2);
+    color: #f72585;
+}
+
+/* ============================================
+   CONTROL BUTTONS
+   ============================================ */
+#pause-btn {
+    position: absolute;
+    bottom: 7px;
+    right: 0px;
+    width: 8vmin;
+    height: 8vmin;
+    border-radius: 50%;
+    background: rgba(247, 37, 133, 0.7);
+    color: white;
+    border: none;
+    font-size: 3vmin;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+}
+
+#music-toggle {
+    position: absolute;
+    bottom: 7px;
+    left: 7px;
+    width: 8vmin;
+    height: 8vmin;
+    border-radius: 50%;
+    background: rgba(76, 201, 240, 0.7);
+    color: white;
+    border: none;
+    font-size: 4vmin;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* ============================================
+   MODAL STYLES
+   ============================================ */
+.modal-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-screen.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 25px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+    border: 2px solid #f72585;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal-screen.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-content h2 {
+    color: #f72585;
+    margin-bottom: 15px;
+    font-size: clamp(20px, 5vw, 24px);
+}
+
+.modal-content p {
+    text-align: center;
+    color: #eee;
+    margin-bottom: 25px;
+    font-size: clamp(16px, 4vw, 18px);
+    line-height: 1.5;
+}
+
+.modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.modal-buttons button {
+    padding: 12px;
+    font-size: clamp(16px, 4vw, 18px);
+    border-radius: 50px;
+    cursor: pointer;
+    border: none;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+#confirm-reset-btn {
+    background: #f72585;
+    color: white;
+}
+
+#confirm-reset-btn:active {
+    background: #d41b6b;
+    transform: scale(0.98);
+}
+
+#cancel-reset-btn {
+    background: #333;
+    color: white;
+}
+
+#cancel-reset-btn:active {
+    background: #444;
+    transform: scale(0.98);
+}
+
+/* ============================================
+   LEVEL SCREEN - MAP STYLE (MOVED TO END)
+   ============================================ */
+/* ============================================
+   LEVEL SCREEN - SCROLL UP ZIGZAG MAP
+   ============================================ */
+#levels-screen {
+    background-color: rgba(0, 0, 0, 0.95);
+    background: url(images/level-bg.jpg) center center / cover fixed no-repeat;
+    color: white;
+    z-index: 100;
+    text-align: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Remove overflow from parent, we will scroll the container */
+    overflow: hidden;
+}
+
+#levels-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    z-index: 20;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.header-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+#levels-header h1 {
+    font-size: clamp(20px, 5vw, 32px);
+    margin: 0;
+    text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+}
+
+.icon-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+    margin: 0;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.icon-btn:active {
+    transform: scale(0.95);
+}
+
+#levels-screen::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 400vh;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        radial-gradient(circle at 40% 90%, rgba(255, 255, 255, 0.1) 3px, transparent 3px);
+    background-size: 300px 300px, 200px 200px, 400px 400px;
+    animation: stars-twinkle 8s infinite alternate;
+    pointer-events: none;
+}
+
+#levels-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 120px 20px 12px;
+    /* Top padding for header */
+    box-sizing: border-box;
+
+    /* Flex settings for the content inside */
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+
+    /* Ensure scrolling works */
+    scroll-behavior: smooth;
+}
+
+/* Wrapper for the levels to ensure they stack properly in the scrollable container */
+#levels-scroll-content {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    width: 100%;
+    min-height: min-content;
+    padding-bottom: 100px;
+    /* Space for Level 1 at bottom */
+    padding-top: 100px;
+    /* Space for Level 10 at top */
+}
+
+/* ZIGZAG CONNECTION LINES */
+.zigzag-connector {
+    position: absolute;
+    height: 3px;
+    background: repeating-linear-gradient(90deg,
+            transparent,
+            transparent 5px,
+            rgba(76, 201, 240, 0.8) 5px,
+            rgba(76, 201, 240, 0.8) 7px);
+    z-index: 1;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+    pointer-events: none;
+}
+
+/* Floating islands/circles for each level */
+.level-btn {
+    position: relative !important;
+    width: clamp(80px, 18vmin, 130px) !important;
+    height: clamp(80px, 18vmin, 130px) !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    color: white !important;
+    border: none !important;
+    font-size: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    z-index: 3 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 18vmin 0 !important;
+    padding: 0 !important;
+    pointer-events: auto !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.planet-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 15px rgba(76, 201, 240, 0.3));
+    transition: all 0.4s ease;
+}
+
+.level-title {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #4cc9f0;
+    font-size: clamp(14px, 3vmin, 20px);
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(76, 201, 240, 0.9);
+    background: rgba(0, 5, 15, 0.8);
+    padding: 4px 15px;
+    border-radius: 20px;
+    white-space: nowrap;
+    z-index: 10;
+    letter-spacing: 2px;
+    border: 1px solid rgba(76, 201, 240, 0.3);
+    box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
+}
+
+.level-btn:hover .planet-img {
+    transform: scale(1.15) rotate(5deg);
+    filter: drop-shadow(0 0 25px rgba(76, 201, 240, 0.7));
+}
+
+.level-btn:hover .level-title {
+    color: #fff;
+    border-color: #4cc9f0;
+    text-shadow: 0 0 15px #4cc9f0;
+}
+
+.level-btn.locked .planet-img {
+    filter: grayscale(1) brightness(0.3) blur(1px) !important;
+    cursor: not-allowed;
+}
+
+.level-btn.locked .level-title {
+    opacity: 0.5;
+    color: #555;
+    text-shadow: none;
+    border-color: #333;
+}
+
+.level-btn.completed .planet-img {
+    filter: drop-shadow(0 0 15px #4CAF50);
+}
+
+.level-btn.current-level .planet-img {
+    animation: current-planet-glow 2s infinite alternate;
+}
+
+.level-btn.current-level .level-title {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: #FFD700;
+    color: #FFD700;
+    text-shadow: 0 0 10px #FFD700;
+}
+
+@keyframes current-planet-glow {
+    0% {
+        filter: drop-shadow(0 0 15px #FFD700) brightness(1);
+        transform: scale(1);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 30px #FFD700) brightness(1.2);
+        transform: scale(1.05);
+    }
+}
+
+.level-stars {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+}
+
+.star {
+    width: 28px;
+    height: 28px;
+    background-image: url('images/planets/star.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+.star.empty {
+    filter: grayscale(1) brightness(0.3);
+    opacity: 0.2;
+}
+
+.star.filled {
+    filter: drop-shadow(0 0 8px #FFEB3B) !important;
+}
+
+/* ZIGZAG POSITIONS */
+.level-btn:nth-child(odd) {
+    align-self: flex-start;
+    margin-left: 15% !important;
+}
+
+.level-btn:nth-child(even) {
+    align-self: flex-end;
+    margin-right: 15% !important;
+}
+
+.level-btn:nth-child(10) {
+    margin-top: 5vmin !important;
+}
+
+.level-btn:nth-child(1) {
+    margin-bottom: 5vmin !important;
+}
+
+
+/* Navigation buttons at bottom - STICKY */
+#levels-screen .button-group {
+    position: sticky;
+    bottom: 20px;
+    z-index: 10;
+    display: flex;
+    gap: clamp(10px, 2vmin, 20px);
+    margin: 2vmin 0;
+    background: rgba(0, 20, 40, 0.9);
+    padding: clamp(10px, 2vmin, 20px);
+    border-radius: 20px;
+    border: 2px solid rgba(76, 201, 240, 0.5);
+    backdrop-filter: blur(15px);
+    width: 95%;
+    max-width: 800px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#levels-screen button:not(.level-btn) {
+    background: rgba(76, 201, 240, 0.4) !important;
+    color: white !important;
+    border: 2px solid #4cc9f0 !important;
+    padding: clamp(10px, 1.5vmin, 15px) clamp(15px, 3vmin, 25px) !important;
+    font-size: clamp(19px, 3.5vmin, 30px) !important;
+    border-radius: 50px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 0 15px rgba(76, 201, 240, 0.5) !important;
+    min-width: clamp(120px, 25vmin, 180px);
+    pointer-events: auto !important;
+    z-index: 1000 !important;
+    position: relative !important;
+    flex-shrink: 0;
+}
+
+#levels-screen button:not(.level-btn):hover {
+    background: rgba(76, 201, 240, 0.6) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 0 25px rgba(76, 201, 240, 0.8) !important;
+}
+
+#levels-screen button:not(.level-btn):active {
+    transform: translateY(0) !important;
+}
+
+/* ANIMATIONS */
+@keyframes current-planet-glow {
+    0% {
+        filter: drop-shadow(0 0 15px #FFD700) brightness(1);
+        transform: scale(1);
+    }
+
+    100% {
+        filter: drop-shadow(0 0-35px #FFD700) brightness(1.3);
+        transform: scale(1.1);
+    }
+}
+
+@keyframes stars-twinkle {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: scale(0.9);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+    }
+}
+
+/* SCROLLBAR STYLING */
+#levels-screen::-webkit-scrollbar {
+    width: 10px;
+}
+
+#levels-screen::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+}
+
+#levels-screen::-webkit-scrollbar-thumb {
+    background: rgba(76, 201, 240, 0.6);
+    border-radius: 5px;
+}
+
+#levels-screen::-webkit-scrollbar-thumb:hover {
+    background: rgba(76, 201, 240, 0.8);
+}
+
+/* FORCE SCROLL UP DIRECTION */
+#levels-screen {
+    scroll-behavior: smooth;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-10px) scale(1.1);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes bomb-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes shield-pulse {
+    0% {
+        opacity: 0.3;
+        transform: scale(0.95);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+
+    100% {
+        opacity: 0.3;
+        transform: scale(0.95);
+    }
+}
+
+@keyframes spawn-notification {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.5);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.5);
+    }
+}
+
+@keyframes start-btn-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(79, 172, 254, 0.7);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(79, 172, 254, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(79, 172, 254, 0);
+    }
+}
+
+@keyframes stars-twinkle {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes pulse-level {
+    0% {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+}
+
+
+
+@keyframes float {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translateY(0) rotate(360deg);
+        opacity: 0.3;
+    }
+}
+
+#music-toggle {
+    position: absolute;
+    bottom: 7px;
+    left: 7px;
+    width: 8vmin;
+    height: 8vmin;
+    border-radius: 50%;
+    background: rgba(76, 201, 240, 0.7);
+    color: white;
+    border: none;
+    font-size: 4vmin;
+    z-index: 30;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: auto !important;
+}
+
+
+#music-toggle:active {
+    transform: scale(0.95);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    #levels-container {
+        height: 100vh;
+        width: 95%;
+        padding: 78px 5px -1px;
+    }
+
+    .level-btn {
+        width: 25vmin !important;
+        height: 25vmin !important;
+        margin: 12vmin 0 !important;
+    }
+
+    #levels-screen h1 {
+        font-size: 6vmin;
+        margin-top: 5vmin;
+    }
+
+    #levels-screen .button-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #levels-screen button {
+        min-width: 126px;
+        padding: 1.5vmin 3vmin !important;
+    }
+
+    #levels-header {
+        padding: 3px;
+    }
+
+    #back-to-menu {
+        font-size: 19px !important;
+    }
+
+    #reset-progress-btn {
+        font-size: 19px !important;
+    }
+}
+
+#back-to-menu {
+    font-size: 23px !important;
+}
+
+#reset-progress-btn {
+    font-size: 23px !important;
+}
+
+/* Tablet responsiveness */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .level-btn {
+        width: 10vmin !important;
+        height: 10vmin !important;
+        font-size: 3vmin !important;
+    }
+}
+
+/* Modal responsiveness */
+@media (min-width: 500px) {
+    .modal-buttons {
+        flex-direction: row;
+    }
+
+    .modal-content {
+        padding: 30px;
+    }
+}
